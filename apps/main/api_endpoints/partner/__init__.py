@@ -1,0 +1,1 @@
+from .PartnerList import *  # noqa

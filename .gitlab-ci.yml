@@ -1,0 +1,28 @@
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  script:
+    - sudo chown -R gitlab-runner:gitlab-runner /var/www/ait/ait-dev.uicgroup.tech/web
+    - rsync -rult --delete-after  --exclude=.git --exclude=.gitlab-ci.yml --exclude=media/ --exclude=locale/ --exclude=local_settings.py --exclude=static/ --exclude=.env  $CI_PROJECT_DIR/ /var/www/ait/ait-dev.uicgroup.tech/web/backend
+    - cd /var/www/ait/ait-dev.uicgroup.tech/web/backend
+    # - sudo chmod -R 777 media/
+    - cd /var/www/ait/ait-dev.uicgroup.tech/web && source env/bin/activate && pip install -r backend/requirements/production.txt && cd backend/ && python manage.py migrate  && python manage.py makemessages -l uz -l ru -l en && python manage.py compilemessages
+  tags:
+    - main
+  only:
+    - master
+
+
+deploy:
+  stage: deploy  
+  script:
+   - sudo systemctl restart g-ait.service
+   - sudo systemctl status g-ait.service
+   - echo 'DONE'
+  tags:
+    - main
+  only:
+    - master
